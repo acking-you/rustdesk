@@ -993,10 +993,6 @@ pub fn main_get_sound_inputs() -> Vec<String> {
     vec![String::from("")]
 }
 
-pub fn main_get_login_device_info() -> SyncReturn<String> {
-    SyncReturn(get_login_device_info_json())
-}
-
 pub fn main_change_id(new_id: String) {
     change_id(new_id)
 }
@@ -2096,51 +2092,6 @@ pub fn session_restart_remote_device(session_id: SessionID) {
     }
 }
 
-pub fn session_get_audit_server_sync(session_id: SessionID, typ: String) -> SyncReturn<String> {
-    let res = if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        session.get_audit_server(typ)
-    } else {
-        "".to_owned()
-    };
-    SyncReturn(res)
-}
-
-pub fn session_send_note(session_id: SessionID, note: String) {
-    if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        session.send_note(note)
-    }
-}
-
-pub fn session_get_last_audit_note(session_id: SessionID) -> SyncReturn<String> {
-    if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        SyncReturn(session.last_audit_note.lock().unwrap().clone())
-    } else {
-        SyncReturn("".to_owned())
-    }
-}
-
-pub fn session_set_audit_guid(session_id: SessionID, guid: String) {
-    if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        *session.audit_guid.lock().unwrap() = guid;
-    }
-}
-
-pub fn session_get_audit_guid(session_id: SessionID) -> SyncReturn<String> {
-    if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        SyncReturn(session.audit_guid.lock().unwrap().clone())
-    } else {
-        SyncReturn("".to_owned())
-    }
-}
-
-pub fn session_get_conn_session_id(session_id: SessionID) -> SyncReturn<String> {
-    if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        SyncReturn(session.lc.read().unwrap().session_id.to_string())
-    } else {
-        SyncReturn("".to_owned())
-    }
-}
-
 pub fn session_alternative_codecs(session_id: SessionID) -> String {
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         let (vp8, av1, h264, h265) = session.alternative_codecs();
@@ -2477,20 +2428,6 @@ pub fn install_install_path() -> SyncReturn<String> {
 
 pub fn install_install_options() -> SyncReturn<String> {
     SyncReturn(install_options())
-}
-
-pub fn main_account_auth(op: String, remember_me: bool) {
-    let id = get_id();
-    let uuid = get_uuid();
-    account_auth(op, id, uuid, remember_me);
-}
-
-pub fn main_account_auth_cancel() {
-    account_auth_cancel()
-}
-
-pub fn main_account_auth_result() -> String {
-    account_auth_result()
 }
 
 pub fn main_on_main_window_close() {

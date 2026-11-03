@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -45,7 +44,6 @@ import 'package:flutter_hbb/native/win32.dart'
     if (dart.library.html) 'package:flutter_hbb/web/win32.dart';
 import 'package:flutter_hbb/native/common.dart'
     if (dart.library.html) 'package:flutter_hbb/web/common.dart';
-import 'package:flutter_hbb/utils/http_service.dart' as http;
 
 final globalKey = GlobalKey<NavigatorState>();
 final navigationBarKey = GlobalKey();
@@ -1692,10 +1690,6 @@ Future<bool> matchPeer(
   if (peer.alias.toLowerCase().contains(searchText)) {
     return true;
   }
-  if (peerTabShowNote(peerTabIndex) &&
-      peer.note.toLowerCase().contains(searchText)) {
-    return true;
-  }
   return false;
 }
 
@@ -2766,12 +2760,6 @@ connect(BuildContext context, String id,
   }
 }
 
-Map<String, String> getHttpHeaders() {
-  return {
-    'Authorization': 'Bearer ${bind.mainGetLocalOption(key: 'access_token')}'
-  };
-}
-
 // Simple wrapper of built-in types for reference use.
 class SimpleWrapper<T> {
   T value;
@@ -3665,20 +3653,12 @@ Future<bool> setServerConfig(
       return false;
     }
   }
-  final oldApiServer = await bind.mainGetApiServer();
-
   // should set one by one
   await bind.mainSetOption(
       key: 'custom-rendezvous-server', value: config.idServer);
   await bind.mainSetOption(key: 'relay-server', value: config.relayServer);
   await bind.mainSetOption(key: 'api-server', value: config.apiServer);
   await bind.mainSetOption(key: 'key', value: config.key);
-  final newApiServer = await bind.mainGetApiServer();
-  if (oldApiServer.isNotEmpty &&
-      oldApiServer != newApiServer &&
-      gFFI.userModel.isLogin) {
-    gFFI.userModel.logOut(apiServer: oldApiServer);
-  }
   return true;
 }
 
@@ -4067,24 +4047,6 @@ disableWindowMovable(int? windowId) {
   }
 }
 
-Widget netWorkErrorWidget() {
-  return Center(
-      child: Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      if (!gFFI.userModel.networkErrorFromServer.value)
-        Text(translate("network_error_tip")),
-      ElevatedButton(
-              onPressed: gFFI.userModel.refreshCurrentUser,
-              child: Text(translate("Retry")))
-          .marginSymmetric(vertical: 16),
-      SelectableText(gFFI.userModel.networkError.value,
-          style: TextStyle(fontSize: 11, color: Colors.red)),
-    ],
-  ));
-}
-
 List<ResizeEdge>? get windowManagerEnableResizeEdges => isWindows
     ? [
         ResizeEdge.topLeft,
@@ -4251,21 +4213,6 @@ String getConnectionText(bool secure, bool direct, String streamType) {
   } else {
     return '$connectionText ($streamType)';
   }
-}
-
-String decode_http_response(http.Response resp) {
-  try {
-    // https://github.com/rustdesk/rustdesk-server-pro/discussions/758
-    return utf8.decode(resp.bodyBytes, allowMalformed: true);
-  } catch (e) {
-    debugPrint('Failed to decode response as UTF-8: $e');
-    // Fallback to bodyString which handles encoding automatically
-    return resp.body;
-  }
-}
-
-bool peerTabShowNote(PeerTabIndex peerTabIndex) {
-  return peerTabIndex == PeerTabIndex.ab || peerTabIndex == PeerTabIndex.group;
 }
 
 // TODO: We should support individual bits combinations in the future.

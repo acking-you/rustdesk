@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:html' as html;
 
 import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_hbb/models/shortcut_model.dart';
@@ -794,18 +793,6 @@ class RustdeskImpl {
     throw UnimplementedError("mainGetDefaultSoundInput");
   }
 
-  String mainGetLoginDeviceInfo({dynamic hint}) {
-    String userAgent = html.window.navigator.userAgent;
-    String appName = html.window.navigator.appName;
-    String appVersion = html.window.navigator.appVersion;
-    String? platform = html.window.navigator.platform;
-    return jsonEncode({
-      'os': '$userAgent, $appName $appVersion ($platform)',
-      'type': 'Web client',
-      'name': js.context.callMethod('getByName', ['my_name']),
-    });
-  }
-
   Future<void> mainChangeId({required String newId, dynamic hint}) {
     throw UnimplementedError("mainChangeId");
   }
@@ -1380,17 +1367,6 @@ class RustdeskImpl {
     return Future(() => js.context.callMethod('setByName', ['restart']));
   }
 
-  String sessionGetAuditServerSync(
-      {required UuidValue sessionId, required String typ, dynamic hint}) {
-    return js.context.callMethod('getByName', ['audit_server', typ]);
-  }
-
-  Future<void> sessionSendNote(
-      {required UuidValue sessionId, required String note, dynamic hint}) {
-    return Future(
-        () => js.context.callMethod('setByName', ['send_note', note]));
-  }
-
   Future<String> sessionAlternativeCodecs(
       {required UuidValue sessionId, dynamic hint}) {
     return Future(
@@ -1635,27 +1611,6 @@ class RustdeskImpl {
 
   String installInstallPath({dynamic hint}) {
     throw UnimplementedError("installInstallPath");
-  }
-
-  Future<void> mainAccountAuth(
-      {required String op, required bool rememberMe, dynamic hint}) {
-    // Safari only allows auth popups while handling the original user gesture.
-    // Use Future.sync so the JS call runs synchronously (pre-opening the OIDC
-    // window) while any interop error still surfaces as a Future error.
-    return Future.sync(() => js.context.callMethod('setByName', [
-          'account_auth',
-          jsonEncode({'op': op, 'remember': rememberMe})
-        ]));
-  }
-
-  Future<void> mainAccountAuthCancel({dynamic hint}) {
-    return Future(
-        () => js.context.callMethod('setByName', ['account_auth_cancel']));
-  }
-
-  Future<String> mainAccountAuthResult({dynamic hint}) {
-    return Future(
-        () => js.context.callMethod('getByName', ['account_auth_result']));
   }
 
   Future<void> mainOnMainWindowClose({dynamic hint}) {
@@ -2046,27 +2001,9 @@ class RustdeskImpl {
         ['option:session', 'edge-scroll-edge-thickness', value.toString()]));
   }
 
-  String sessionGetConnSessionId({required UuidValue sessionId, dynamic hint}) {
-    return js.context.callMethod('getByName', ['conn_session_id']);
-  }
-
   bool willSessionCloseCloseSession(
       {required UuidValue sessionId, dynamic hint}) {
     return true;
-  }
-
-  String sessionGetLastAuditNote({required UuidValue sessionId, dynamic hint}) {
-    return js.context.callMethod('getByName', ['last_audit_note']);
-  }
-
-  Future<void> sessionSetAuditGuid(
-      {required UuidValue sessionId, required String guid, dynamic hint}) {
-    return Future(
-        () => js.context.callMethod('setByName', ['audit_guid', guid]));
-  }
-
-  String sessionGetAuditGuid({required UuidValue sessionId, dynamic hint}) {
-    return js.context.callMethod('getByName', ['audit_guid']);
   }
 
   bool mainSetCursorPosition({required int x, required int y, dynamic hint}) {

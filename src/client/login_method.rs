@@ -202,30 +202,6 @@ mod tests {
         assert_eq!(login.os_login.password, "os password");
     }
 
-    #[test]
-    fn request_approval_does_not_save_personal_ab_password() {
-        for request_approval in [false, true] {
-            let mut lc = client::LoginConfigHandler::default();
-            lc.id = format!("request-approval-ab-password-test-{}", uuid::Uuid::new_v4());
-            lc.password = vec![3; 32];
-            lc.password_source = client::PasswordSource::PersonalAb(lc.password.clone());
-            if request_approval {
-                assert!(lc.set_login_method("request-approval"));
-            }
-            lc.handle_peer_info(&PeerInfo::default());
-            let saved = PeerConfig::load(&lc.id).password;
-            PeerConfig::remove(&lc.id);
-            assert_eq!(
-                saved,
-                if request_approval {
-                    Vec::new()
-                } else {
-                    lc.password
-                }
-            );
-        }
-    }
-
     #[tokio::test]
     async fn request_approval_preserves_saved_password() {
         let (mut stream, mut peer) = connection().await;

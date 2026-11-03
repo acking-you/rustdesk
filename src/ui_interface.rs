@@ -25,8 +25,6 @@ use std::{
 };
 
 use crate::common::SOFTWARE_UPDATE_URL;
-#[cfg(feature = "flutter")]
-use crate::hbbs_http::account;
 #[cfg(not(any(target_os = "ios")))]
 use crate::ipc;
 
@@ -46,13 +44,6 @@ pub struct UiStatus {
     pub id: String,
     #[cfg(feature = "flutter")]
     pub video_conn_count: usize,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct LoginDeviceInfo {
-    pub os: String,
-    pub r#type: String,
-    pub name: String,
 }
 
 lazy_static::lazy_static! {
@@ -1338,21 +1329,6 @@ fn check_connect_status(reconnect: bool) -> mpsc::UnboundedSender<ipc::Data> {
 }
 
 #[cfg(feature = "flutter")]
-pub fn account_auth(op: String, id: String, uuid: String, remember_me: bool) {
-    account::OidcSession::account_auth(get_api_server(), op, id, uuid, remember_me);
-}
-
-#[cfg(feature = "flutter")]
-pub fn account_auth_cancel() {
-    account::OidcSession::auth_cancel();
-}
-
-#[cfg(feature = "flutter")]
-pub fn account_auth_result() -> String {
-    serde_json::to_string(&account::OidcSession::get_result()).unwrap_or_default()
-}
-
-#[cfg(feature = "flutter")]
 pub fn set_user_default_option(key: String, value: String) {
     use hbb_common::config::UserDefaultConfig;
     UserDefaultConfig::load().set(key, value);
@@ -1373,21 +1349,6 @@ pub fn get_fingerprint() -> String {
     }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     return ipc::get_fingerprint();
-}
-
-#[inline]
-pub fn get_login_device_info() -> LoginDeviceInfo {
-    LoginDeviceInfo {
-        // std::env::consts::OS is better than whoami::platform() here.
-        os: std::env::consts::OS.to_owned(),
-        r#type: "client".to_owned(),
-        name: crate::common::hostname(),
-    }
-}
-
-#[inline]
-pub fn get_login_device_info_json() -> String {
-    serde_json::to_string(&get_login_device_info()).unwrap_or("{}".to_string())
 }
 
 // notice: avoiding create ipc connection repeatedly,

@@ -75,8 +75,6 @@ pub struct Session<T: InvokeUiSession> {
     // Indicate whether the session is reconnected.
     // Used to auto start file transfer after reconnection.
     pub reconnect_count: Arc<AtomicUsize>,
-    pub last_audit_note: Arc<Mutex<String>>,
-    pub audit_guid: Arc<Mutex<String>>,
     // Every cursor shape as the peer sent it, compressed, by the id the UI knows it by. The
     // peer sends a shape once, and a window asks for it whenever it has to draw it again.
     #[cfg(feature = "flutter")]
@@ -576,27 +574,6 @@ impl<T: InvokeUiSession> Session<T> {
         lc.mark_restarting_remote_device();
         let msg = lc.restart_remote_device();
         self.send(Data::Message(msg));
-    }
-
-    pub fn get_audit_server(&self, typ: String) -> String {
-        if LocalConfig::get_option("access_token").is_empty() {
-            return "".to_owned();
-        }
-        crate::get_audit_server(
-            Config::get_option("api-server"),
-            Config::get_option("custom-rendezvous-server"),
-            typ,
-        )
-    }
-
-    pub fn send_note(&self, note: String) {
-        let url = self.get_audit_server("conn".to_string());
-        let id = self.get_id();
-        let session_id = self.lc.read().unwrap().session_id;
-        *self.last_audit_note.lock().unwrap() = note.clone();
-        std::thread::spawn(move || {
-            send_note(url, id, session_id, note);
-        });
     }
 
     #[cfg(not(feature = "flutter"))]
@@ -1857,9 +1834,6 @@ impl<T: InvokeUiSession> Interface for Session<T> {
             );
         }
         self.update_privacy_mode();
-        // Clear audit_guid when connection is established successfully
-        *self.audit_guid.lock().unwrap() = String::new();
-        *self.last_audit_note.lock().unwrap() = String::new();
         // Save recent peers, then push event to flutter. So flutter can refresh peer page.
         self.lc.write().unwrap().handle_peer_info(&pi);
         self.set_peer_info(&pi);
@@ -1977,7 +1951,7 @@ pub async fn io_loop<T: InvokeUiSession>(handler: Session<T>, round: u32) {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     let (sender, mut receiver) = mpsc::unbounded_channel::<Data>();
     *handler.sender.write().unwrap() = Some(sender.clone());
-    let token = LocalConfig::get_option("access_token");
+    let token = String::new();
     let key = crate::get_key(false).await;
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     if handler.is_port_forward() {
@@ -2098,10 +2072,4 @@ async fn start_one_port_forward<T: InvokeUiSession>(
         handler.on_error(&format!("Failed to listen on {}: {}", port, err));
     }
     log::info!("port forward (:{}) exit", port);
-}
-
-#[tokio::main(flavor = "current_thread")]
-async fn send_note(url: String, id: String, sid: u64, note: String) {
-    let body = serde_json::json!({ "id": id, "session_id": sid, "note": note });
-    allow_err!(crate::post_request(url, body.to_string(), "").await);
 }
