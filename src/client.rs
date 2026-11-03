@@ -2776,7 +2776,7 @@ impl VideoHandler {
 // The source of sent password
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 enum PasswordSource {
-    SharedAb(String),
+    ConfiguredDefault(String),
     Undefined,
 }
 
@@ -2787,13 +2787,13 @@ impl Default for PasswordSource {
 }
 
 impl PasswordSource {
-    // Whether the password is shared ab password
-    pub fn is_shared_ab(&self, password: &[u8], hash: &Hash) -> bool {
+    // Whether the password is the configured default
+    pub fn is_configured_default(&self, password: &[u8], hash: &Hash) -> bool {
         if password.is_empty() {
             return false;
         }
         match self {
-            PasswordSource::SharedAb(p) => Self::equal(p, password, hash),
+            PasswordSource::ConfiguredDefault(p) => Self::equal(p, password, hash),
             _ => false,
         }
     }
@@ -2868,7 +2868,6 @@ pub struct LoginConfigHandler {
     pub selected_windows_session_id: Option<u32>,
     pub peer_info: Option<PeerInfo>,
     password_source: PasswordSource, // where the sent password comes from
-    shared_password: Option<String>, // Store the shared password
     pub enable_trusted_devices: bool,
     pub record_state: bool,
     pub record_permission: bool,
@@ -2900,7 +2899,6 @@ impl LoginConfigHandler {
         switch_uuid: Option<String>,
         mut force_relay: bool,
         adapter_luid: Option<i64>,
-        shared_password: Option<String>,
         conn_token: Option<String>,
         login_method: &str,
     ) {
@@ -2995,7 +2993,6 @@ impl LoginConfigHandler {
         self.switch_uuid = switch_uuid;
         self.adapter_luid = adapter_luid;
         self.selected_windows_session_id = None;
-        self.shared_password = shared_password;
         self.record_state = false;
         self.record_permission = true;
 
@@ -3669,10 +3666,10 @@ impl LoginConfigHandler {
         let hash = self.hash.clone();
         if remember && !self.skips_saved_password() {
             // remember is true: use PeerConfig password or ui login
-            // not sync shared password to recent
+            // Do not save the configured default password to recent peers
             if !password.is_empty()
                 && password != password0
-                && !self.password_source.is_shared_ab(&password, &hash)
+                && !self.password_source.is_configured_default(&password, &hash)
             {
                 config.password = password.clone();
                 log::debug!("remember password of {}", self.id);
@@ -3752,35 +3749,8 @@ impl LoginConfigHandler {
         } else {
             (my_id, self.id.clone())
         };
-        let mut avatar = get_builtin_option(keys::OPTION_AVATAR);
-        if avatar.is_empty() {
-            avatar = serde_json::from_str::<serde_json::Value>(&LocalConfig::get_option(
-                "user_info",
-            ))
-            .ok()
-            .and_then(|x| {
-                x.get("avatar")
-                    .and_then(|x| x.as_str())
-                    .map(|x| x.trim().to_owned())
-            })
-            .unwrap_or_default();
-        }
-        avatar = resolve_avatar_url(avatar);
+        let avatar = resolve_avatar_url(get_builtin_option(keys::OPTION_AVATAR));
         let mut display_name = get_builtin_option(keys::OPTION_DISPLAY_NAME);
-        if display_name.is_empty() {
-            display_name =
-                serde_json::from_str::<serde_json::Value>(&LocalConfig::get_option("user_info"))
-                    .map(|x| {
-                        x.get("display_name")
-                            .and_then(|x| x.as_str())
-                            .map(|x| x.trim())
-                            .filter(|x| !x.is_empty())
-                            .or_else(|| x.get("name").and_then(|x| x.as_str()))
-                            .map(|x| x.to_owned())
-                            .unwrap_or_default()
-                    })
-                    .unwrap_or_default();
-        }
         if display_name.is_empty() {
             display_name = crate::username();
         }
@@ -4670,19 +4640,6 @@ pub async fn handle_hash(
             lc.write().unwrap().password_source = Default::default();
         }
     }
-    // shared password
-    // Currently it's used only when click shared ab peer card
-    let shared_password = lc.write().unwrap().shared_password.take();
-    if let Some(shared_password) = shared_password {
-        if !shared_password.is_empty() {
-            let mut hasher = Sha256::new();
-            hasher.update(shared_password.clone());
-            hasher.update(&hash.salt);
-            let res = hasher.finalize();
-            password = res[..].into();
-            lc.write().unwrap().password_source = PasswordSource::SharedAb(shared_password);
-        }
-    }
     // peer config password
     if password.is_empty() {
         password = lc.read().unwrap().config.password.clone();
@@ -4698,7 +4655,7 @@ pub async fn handle_hash(
             hasher.update(&hash.salt);
             let res = hasher.finalize();
             password = res[..].into();
-            lc.write().unwrap().password_source = PasswordSource::SharedAb(p); // reuse SharedAb here
+            lc.write().unwrap().password_source = PasswordSource::ConfiguredDefault(p);
         }
     }
 

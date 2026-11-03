@@ -3977,7 +3977,6 @@ class FFI {
     bool isTerminal = false,
     String? switchUuid,
     String? password,
-    bool? isSharedPassword,
     String? connToken,
     bool? forceRelay,
     int? tabWindowId,
@@ -4027,7 +4026,6 @@ class FFI {
         switchUuid: switchUuid ?? '',
         forceRelay: forceRelay ?? false,
         password: password ?? '',
-        isSharedPassword: isSharedPassword ?? false,
         connToken: connToken,
         loginMethod: loginMethod,
       );

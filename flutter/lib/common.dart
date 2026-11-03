@@ -2549,41 +2549,35 @@ connectMainDesktop(String id,
     bool? forceRelay,
     String? password,
     String? connToken,
-    bool? isSharedPassword,
     String loginMethod = ''}) async {
   if (isFileTransfer) {
     await rustDeskWinManager.newFileTransfer(id,
         loginMethod: loginMethod,
         password: password,
-        isSharedPassword: isSharedPassword,
         connToken: connToken,
         forceRelay: forceRelay);
   } else if (isViewCamera) {
     await rustDeskWinManager.newViewCamera(id,
         loginMethod: loginMethod,
         password: password,
-        isSharedPassword: isSharedPassword,
         connToken: connToken,
         forceRelay: forceRelay);
   } else if (isTcpTunneling || isRDP) {
     await rustDeskWinManager.newPortForward(id, isRDP,
         loginMethod: loginMethod,
         password: password,
-        isSharedPassword: isSharedPassword,
         connToken: connToken,
         forceRelay: forceRelay);
   } else if (isTerminal) {
     await rustDeskWinManager.newTerminal(id,
         loginMethod: loginMethod,
         password: password,
-        isSharedPassword: isSharedPassword,
         connToken: connToken,
         forceRelay: forceRelay);
   } else {
     await rustDeskWinManager.newRemoteDesktop(id,
         loginMethod: loginMethod,
         password: password,
-        isSharedPassword: isSharedPassword,
         forceRelay: forceRelay);
   }
 }
@@ -2602,7 +2596,6 @@ connect(BuildContext context, String id,
     bool forceRelay = false,
     String? password,
     String? connToken,
-    bool? isSharedPassword,
     String loginMethod = ''}) async {
   if (id == '') return;
   if (!isDesktop || desktopType == DesktopType.main) {
@@ -2635,7 +2628,6 @@ connect(BuildContext context, String id,
         isTcpTunneling: isTcpTunneling,
         isRDP: isRDP,
         password: password,
-        isSharedPassword: isSharedPassword,
         forceRelay: forceRelay,
       );
     } else {
@@ -2647,7 +2639,6 @@ connect(BuildContext context, String id,
         'isTcpTunneling': isTcpTunneling,
         'isRDP': isRDP,
         'password': password,
-        'isSharedPassword': isSharedPassword,
         'forceRelay': forceRelay,
         'connToken': connToken,
         'loginMethod': loginMethod,
@@ -2663,8 +2654,7 @@ connect(BuildContext context, String id,
                 desktop_file_manager.FileManagerPage(
                     id: id,
                     loginMethod: loginMethod,
-                    password: password,
-                    isSharedPassword: isSharedPassword),
+                    password: password),
           ),
         );
       } else {
@@ -2675,7 +2665,6 @@ connect(BuildContext context, String id,
                 id: id,
                 loginMethod: loginMethod,
                 password: password,
-                isSharedPassword: isSharedPassword,
                 forceRelay: forceRelay),
           ),
         );
@@ -2692,7 +2681,6 @@ connect(BuildContext context, String id,
               loginMethod: loginMethod,
               toolbarState: ToolbarState(),
               password: password,
-              isSharedPassword: isSharedPassword,
             ),
           ),
         );
@@ -2704,7 +2692,6 @@ connect(BuildContext context, String id,
                 id: id,
                 loginMethod: loginMethod,
                 password: password,
-                isSharedPassword: isSharedPassword,
                 forceRelay: forceRelay),
           ),
         );
@@ -2717,7 +2704,6 @@ connect(BuildContext context, String id,
             id: id,
             loginMethod: loginMethod,
             password: password,
-            isSharedPassword: isSharedPassword,
             forceRelay: forceRelay,
           ),
         ),
@@ -2733,7 +2719,6 @@ connect(BuildContext context, String id,
               loginMethod: loginMethod,
               toolbarState: ToolbarState(),
               password: password,
-              isSharedPassword: isSharedPassword,
             ),
           ),
         );
@@ -2745,7 +2730,6 @@ connect(BuildContext context, String id,
                 id: id,
                 loginMethod: loginMethod,
                 password: password,
-                isSharedPassword: isSharedPassword,
                 forceRelay: forceRelay),
           ),
         );

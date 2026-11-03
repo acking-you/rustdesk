@@ -15,7 +15,6 @@ class TerminalPage extends StatefulWidget {
     required this.password,
     this.loginMethod = '',
     required this.tabController,
-    required this.isSharedPassword,
     required this.terminalId,
     required this.tabKey,
     this.forceRelay,
@@ -28,7 +27,6 @@ class TerminalPage extends StatefulWidget {
   final String loginMethod;
   final DesktopTabController tabController;
   final bool? forceRelay;
-  final bool? isSharedPassword;
   final String? connToken;
   final ValueChanged<String>? onClipboardWriteBlocked;
   final ValueChanged<String>? onClipboardWriteSucceeded;
@@ -71,7 +69,6 @@ class _TerminalPageState extends State<TerminalPage>
       peerId: widget.id,
       password: widget.password,
       loginMethod: widget.loginMethod,
-      isSharedPassword: widget.isSharedPassword,
       forceRelay: widget.forceRelay,
       connToken: widget.connToken,
     );

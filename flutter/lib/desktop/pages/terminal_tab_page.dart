@@ -79,7 +79,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
       terminalId: terminalId,
       password: params['password'],
       loginMethod: params['loginMethod'] ?? '',
-      isSharedPassword: params['isSharedPassword'],
       forceRelay: params['forceRelay'],
       connToken: params['connToken'],
     ));
@@ -90,7 +89,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
     required int terminalId,
     String? password,
     String loginMethod = '',
-    bool? isSharedPassword,
     bool? forceRelay,
     String? connToken,
   }) {
@@ -116,7 +114,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
         tabKey: tabKey,
         password: password,
         loginMethod: loginMethod,
-        isSharedPassword: isSharedPassword,
         tabController: tabController,
         forceRelay: forceRelay,
         connToken: connToken,
@@ -509,7 +506,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
           terminalId: terminalId,
           password: args['password'],
           loginMethod: args['loginMethod'] ?? '',
-          isSharedPassword: args['isSharedPassword'],
           forceRelay: args['forceRelay'],
           connToken: args['connToken'],
         ));
@@ -709,7 +705,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
         terminalId: newTerminalId,
         password: page.password,
         loginMethod: page.loginMethod,
-        isSharedPassword: page.isSharedPassword,
         forceRelay: page.forceRelay,
         connToken: page.connToken,
       ));

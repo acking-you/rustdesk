@@ -73,7 +73,6 @@ mod tests {
                 String::new(),
                 false,
                 String::new(),
-                false,
                 None,
                 method.to_owned(),
             );
@@ -129,7 +128,6 @@ mod tests {
                     lc.conn_type = conn_type;
                     lc.config.password = vec![1; 32];
                     lc.password = vec![2; 32];
-                    lc.shared_password = Some("shared password".into());
                     let token = lc.get_conn_token();
                     if skip {
                         assert!(lc.set_login_method("request-approval"));
@@ -217,7 +215,6 @@ mod tests {
                 ConnType::DEFAULT_CONN,
                 None,
                 false,
-                None,
                 None,
                 None,
                 "",

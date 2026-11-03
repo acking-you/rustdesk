@@ -146,7 +146,6 @@ class RustdeskImpl {
       required String switchUuid,
       required bool forceRelay,
       required String password,
-      required bool isSharedPassword,
       String? connToken,
       required String loginMethod,
       dynamic hint}) {
@@ -155,7 +154,6 @@ class RustdeskImpl {
       jsonEncode({
         'id': id,
         'password': password,
-        'is_shared_password': isSharedPassword,
         'login_method': loginMethod,
         'isFileTransfer': isFileTransfer,
         'isViewCamera': isViewCamera,
