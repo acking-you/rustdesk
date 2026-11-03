@@ -14,35 +14,27 @@ enum PeerTabIndex {
   recent,
   fav,
   lan,
-  ab,
-  group,
 }
 
 class PeerTabModel with ChangeNotifier {
   WeakReference<FFI> parent;
   int get currentTab => _currentTab;
   int _currentTab = 0; // index in tabNames
-  static const int maxTabCount = 5;
+  static const int maxTabCount = 3;
   static const List<String> tabNames = [
     'Recent sessions',
     'Favorites',
     'Discovered',
-    'Address book',
-    'Accessible devices',
   ];
   static const List<IconData> icons = [
     Icons.access_time_filled,
     Icons.star,
     Icons.explore,
-    IconFont.addressBook,
-    IconFont.deviceGroupFill,
   ];
   List<bool> isEnabled = List.from([
     true,
     true,
     !isWeb && bind.mainGetLocalOption(key: "disable-discovery-panel") != "Y",
-    !(bind.isDisableAb() || bind.isDisableAccount()),
-    !(bind.isDisableGroupPanel() || bind.isDisableAccount()),
   ]);
   final List<bool> _isVisible = List.filled(maxTabCount, true, growable: false);
   List<bool> get isVisibleEnabled => () {
@@ -73,7 +65,7 @@ class PeerTabModel with ChangeNotifier {
       final option = bind.getLocalFlutterOption(k: kOptionPeerTabVisible);
       if (option.isNotEmpty) {
         List<dynamic> decodeList = jsonDecode(option);
-        if (decodeList.length == _isVisible.length) {
+        if (decodeList.length >= _isVisible.length) {
           for (int i = 0; i < _isVisible.length; i++) {
             if (decodeList[i] is bool) {
               _isVisible[i] = decodeList[i];
@@ -89,6 +81,7 @@ class PeerTabModel with ChangeNotifier {
       final option = bind.getLocalFlutterOption(k: kOptionPeerTabOrder);
       if (option.isNotEmpty) {
         List<dynamic> decodeList = jsonDecode(option);
+        decodeList = decodeList.where((e) => e is int && e >= 0 && e < maxTabCount).toList();
         if (decodeList.length == maxTabCount) {
           var sortedList = decodeList.toList();
           sortedList.sort();

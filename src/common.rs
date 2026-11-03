@@ -1356,14 +1356,6 @@ pub fn get_local_option(key: &str) -> String {
     v
 }
 
-pub fn get_audit_server(api: String, custom: String, typ: String) -> String {
-    let url = get_api_server(api, custom);
-    if url.is_empty() || is_public(&url) {
-        return "".to_owned();
-    }
-    format!("{}/api/audit/{}", url, typ)
-}
-
 /// Check if we should use raw TCP proxy for API calls.
 /// Returns true if USE_RAW_TCP_FOR_API builtin option is "Y", WebSocket is off,
 /// and the target URL belongs to the configured non-public API host.
@@ -2694,33 +2686,6 @@ pub fn get_builtin_option(key: &str) -> String {
 #[inline]
 pub fn is_custom_client() -> bool {
     get_app_name() != "RustDesk"
-}
-
-pub fn verify_login(_raw: &str, _id: &str) -> bool {
-    true
-    /*
-    if is_custom_client() {
-        return true;
-    }
-    #[cfg(debug_assertions)]
-    return true;
-    let Ok(pk) = crate::decode64("IycjQd4TmWvjjLnYd796Rd+XkK+KG+7GU1Ia7u4+vSw=") else {
-        return false;
-    };
-    let Some(key) = get_pk(&pk).map(|x| sign::PublicKey(x)) else {
-        return false;
-    };
-    let Ok(v) = crate::decode64(raw) else {
-        return false;
-    };
-    let raw = sign::verify(&v, &key).unwrap_or_default();
-    let v_str = std::str::from_utf8(&raw)
-        .unwrap_or_default()
-        .split(":")
-        .next()
-        .unwrap_or_default();
-    v_str == id
-    */
 }
 
 #[inline]

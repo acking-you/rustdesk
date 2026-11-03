@@ -158,7 +158,6 @@ pub fn session_add_sync(
     switch_uuid: String,
     force_relay: bool,
     password: String,
-    is_shared_password: bool,
     conn_token: Option<String>,
     login_method: String,
 ) -> SyncReturn<String> {
@@ -173,7 +172,6 @@ pub fn session_add_sync(
         &switch_uuid,
         force_relay,
         password,
-        is_shared_password,
         conn_token,
         &login_method,
     );
@@ -993,10 +991,6 @@ pub fn main_get_sound_inputs() -> Vec<String> {
     vec![String::from("")]
 }
 
-pub fn main_get_login_device_info() -> SyncReturn<String> {
-    SyncReturn(get_login_device_info_json())
-}
-
 pub fn main_change_id(new_id: String) {
     change_id(new_id)
 }
@@ -1209,22 +1203,6 @@ pub fn main_discover() {
 
 pub fn main_get_api_server() -> String {
     get_api_server()
-}
-
-pub fn main_deploy_device(token: String, id: String) -> String {
-    #[cfg(target_os = "android")]
-    {
-        let new_id = match id.trim() {
-            "" => None,
-            id => Some(id.to_owned()),
-        };
-        ui_interface::deploy_device(token, new_id).message()
-    }
-    #[cfg(not(target_os = "android"))]
-    {
-        let _ = (token, id);
-        "Deployment is not supported on this platform.".to_owned()
-    }
 }
 
 pub fn main_resolve_avatar_url(avatar: String) -> SyncReturn<String> {
@@ -2096,51 +2074,6 @@ pub fn session_restart_remote_device(session_id: SessionID) {
     }
 }
 
-pub fn session_get_audit_server_sync(session_id: SessionID, typ: String) -> SyncReturn<String> {
-    let res = if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        session.get_audit_server(typ)
-    } else {
-        "".to_owned()
-    };
-    SyncReturn(res)
-}
-
-pub fn session_send_note(session_id: SessionID, note: String) {
-    if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        session.send_note(note)
-    }
-}
-
-pub fn session_get_last_audit_note(session_id: SessionID) -> SyncReturn<String> {
-    if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        SyncReturn(session.last_audit_note.lock().unwrap().clone())
-    } else {
-        SyncReturn("".to_owned())
-    }
-}
-
-pub fn session_set_audit_guid(session_id: SessionID, guid: String) {
-    if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        *session.audit_guid.lock().unwrap() = guid;
-    }
-}
-
-pub fn session_get_audit_guid(session_id: SessionID) -> SyncReturn<String> {
-    if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        SyncReturn(session.audit_guid.lock().unwrap().clone())
-    } else {
-        SyncReturn("".to_owned())
-    }
-}
-
-pub fn session_get_conn_session_id(session_id: SessionID) -> SyncReturn<String> {
-    if let Some(session) = sessions::get_session_by_session_id(&session_id) {
-        SyncReturn(session.lc.read().unwrap().session_id.to_string())
-    } else {
-        SyncReturn("".to_owned())
-    }
-}
-
 pub fn session_alternative_codecs(session_id: SessionID) -> String {
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         let (vp8, av1, h264, h265) = session.alternative_codecs();
@@ -2479,20 +2412,6 @@ pub fn install_install_options() -> SyncReturn<String> {
     SyncReturn(install_options())
 }
 
-pub fn main_account_auth(op: String, remember_me: bool) {
-    let id = get_id();
-    let uuid = get_uuid();
-    account_auth(op, id, uuid, remember_me);
-}
-
-pub fn main_account_auth_cancel() {
-    account_auth_cancel()
-}
-
-pub fn main_account_auth_result() -> String {
-    account_auth_result()
-}
-
 pub fn main_on_main_window_close() {
     // may called more than one times
     #[cfg(windows)]
@@ -2566,18 +2485,6 @@ pub fn is_custom_client() -> SyncReturn<bool> {
 
 pub fn is_disable_settings() -> SyncReturn<bool> {
     SyncReturn(config::is_disable_settings())
-}
-
-pub fn is_disable_ab() -> SyncReturn<bool> {
-    SyncReturn(config::is_disable_ab())
-}
-
-pub fn is_disable_account() -> SyncReturn<bool> {
-    SyncReturn(config::is_disable_account())
-}
-
-pub fn is_disable_group_panel() -> SyncReturn<bool> {
-    SyncReturn(LocalConfig::get_option("disable-group-panel") == "Y")
 }
 
 // windows only

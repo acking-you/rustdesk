@@ -3011,9 +3011,6 @@ class _CloseMenu extends StatelessWidget {
       assetName: 'assets/close.svg',
       tooltip: 'Close',
       onPressed: () async {
-        if (await showConnEndAuditDialogCloseCanceled(ffi: ffi)) {
-          return;
-        }
         closeConnection(id: id);
       },
       color: _ToolbarTheme.redColor,

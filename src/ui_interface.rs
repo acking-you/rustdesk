@@ -25,8 +25,6 @@ use std::{
 };
 
 use crate::common::SOFTWARE_UPDATE_URL;
-#[cfg(feature = "flutter")]
-use crate::hbbs_http::account;
 #[cfg(not(any(target_os = "ios")))]
 use crate::ipc;
 
@@ -46,13 +44,6 @@ pub struct UiStatus {
     pub id: String,
     #[cfg(feature = "flutter")]
     pub video_conn_count: usize,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct LoginDeviceInfo {
-    pub os: String,
-    pub r#type: String,
-    pub name: String,
 }
 
 lazy_static::lazy_static! {
@@ -1105,102 +1096,6 @@ pub fn get_api_server() -> String {
     )
 }
 
-pub enum DeployResult {
-    Ok,
-    NotEnabled,
-    InvalidInput,
-    IdTaken(String),
-    Error(String),
-}
-
-impl DeployResult {
-    pub fn message(&self) -> String {
-        match self {
-            Self::Ok => "".to_owned(),
-            Self::NotEnabled => "The server does not require explicit deployment.".to_owned(),
-            Self::InvalidInput => "Invalid input.".to_owned(),
-            Self::IdTaken(id) => {
-                format!(
-                    "Id `{}` is already used by another machine on the server.",
-                    id
-                )
-            }
-            Self::Error(err) => err.clone(),
-        }
-    }
-}
-
-pub fn deploy_device(token: String, new_id: Option<String>) -> DeployResult {
-    if Config::no_register_device() {
-        return DeployResult::Error("Cannot deploy an unregistrable device!".to_owned());
-    }
-    let token = token.trim();
-    if token.is_empty() {
-        return DeployResult::Error("token is required!".to_owned());
-    }
-    #[cfg(any(target_os = "android", target_os = "ios"))]
-    let local_id = Config::get_id();
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    let local_id = ipc::get_id();
-    let id_to_deploy = new_id.clone().unwrap_or_else(|| local_id.clone());
-    let uuid = crate::encode64(hbb_common::get_uuid());
-    let pk = crate::encode64(Config::get_key_pair().1);
-    let body = serde_json::json!({
-        "id": id_to_deploy,
-        "uuid": uuid,
-        "pk": pk,
-    });
-    let header = "Authorization: Bearer ".to_owned() + token;
-    let url = get_api_server() + "/api/devices/deploy";
-    let text = match crate::post_request_sync(url, body.to_string(), &header) {
-        Ok(text) => text,
-        Err(err) => return DeployResult::Error(format!("Request failed: {}", err)),
-    };
-    let parsed: serde_json::Value = serde_json::from_str(&text).unwrap_or(serde_json::Value::Null);
-    match parsed["result"].as_str().unwrap_or("") {
-        "OK" => {
-            if let Some(new_id) = new_id {
-                if new_id != local_id {
-                    #[cfg(any(target_os = "android", target_os = "ios"))]
-                    {
-                        Config::set_key_confirmed(false);
-                        Config::set_id(&new_id);
-                    }
-                    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                    if let Err(err) = ipc::set_config("id", new_id) {
-                        return DeployResult::Error(format!(
-                            "Failed to persist deployed id locally: {}",
-                            err
-                        ));
-                    }
-                }
-            }
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            if let Err(err) = ipc::notify_deployed() {
-                log::warn!("Failed to notify deployed state: {}", err);
-            }
-            #[cfg(target_os = "android")]
-            {
-                crate::rendezvous_mediator::NEEDS_DEPLOY
-                    .store(false, std::sync::atomic::Ordering::SeqCst);
-                crate::rendezvous_mediator::reset_needs_deploy_notification();
-                crate::rendezvous_mediator::RendezvousMediator::restart();
-            }
-            DeployResult::Ok
-        }
-        "NOT_ENABLED" => DeployResult::NotEnabled,
-        "INVALID_INPUT" => DeployResult::InvalidInput,
-        "ID_TAKEN" => DeployResult::IdTaken(id_to_deploy),
-        _ => {
-            if text.is_empty() {
-                DeployResult::Error("Unknown response.".to_owned())
-            } else {
-                DeployResult::Error(text)
-            }
-        }
-    }
-}
-
 #[inline]
 pub fn has_hwcodec() -> bool {
     // Has real hardware codec using gpu
@@ -1338,21 +1233,6 @@ fn check_connect_status(reconnect: bool) -> mpsc::UnboundedSender<ipc::Data> {
 }
 
 #[cfg(feature = "flutter")]
-pub fn account_auth(op: String, id: String, uuid: String, remember_me: bool) {
-    account::OidcSession::account_auth(get_api_server(), op, id, uuid, remember_me);
-}
-
-#[cfg(feature = "flutter")]
-pub fn account_auth_cancel() {
-    account::OidcSession::auth_cancel();
-}
-
-#[cfg(feature = "flutter")]
-pub fn account_auth_result() -> String {
-    serde_json::to_string(&account::OidcSession::get_result()).unwrap_or_default()
-}
-
-#[cfg(feature = "flutter")]
 pub fn set_user_default_option(key: String, value: String) {
     use hbb_common::config::UserDefaultConfig;
     UserDefaultConfig::load().set(key, value);
@@ -1373,21 +1253,6 @@ pub fn get_fingerprint() -> String {
     }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     return ipc::get_fingerprint();
-}
-
-#[inline]
-pub fn get_login_device_info() -> LoginDeviceInfo {
-    LoginDeviceInfo {
-        // std::env::consts::OS is better than whoami::platform() here.
-        os: std::env::consts::OS.to_owned(),
-        r#type: "client".to_owned(),
-        name: crate::common::hostname(),
-    }
-}
-
-#[inline]
-pub fn get_login_device_info_json() -> String {
-    serde_json::to_string(&get_login_device_info()).unwrap_or("{}".to_string())
 }
 
 // notice: avoiding create ipc connection repeatedly,

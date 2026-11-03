@@ -81,12 +81,6 @@ class _ConnectionTabPageState extends State<ConnectionTabPage> {
         selectedIcon: selectedIcon,
         unselectedIcon: unselectedIcon,
         onTabCloseButton: () async {
-          if (await desktopTryShowTabAuditDialogCloseCancelled(
-            id: peerId!,
-            tabController: tabController,
-          )) {
-            return;
-          }
           tabController.closeBy(peerId!);
         },
         page: RemotePage(
@@ -102,7 +96,6 @@ class _ConnectionTabPageState extends State<ConnectionTabPage> {
           tabController: tabController,
           switchUuid: params['switch_uuid'],
           forceRelay: params['forceRelay'],
-          isSharedPassword: params['isSharedPassword'],
         ),
       ));
       _update_remote_count();
@@ -332,12 +325,6 @@ class _ConnectionTabPageState extends State<ConnectionTabPage> {
           style: style,
         ),
         proc: () async {
-          if (await desktopTryShowTabAuditDialogCloseCancelled(
-            id: key,
-            tabController: tabController,
-          )) {
-            return;
-          }
           tabController.closeBy(key);
           cancelFunc();
         },
@@ -393,12 +380,6 @@ class _ConnectionTabPageState extends State<ConnectionTabPage> {
   Future<bool> handleWindowCloseButton() async {
     final connLength = tabController.length;
     if (connLength == 1) {
-      if (await desktopTryShowTabAuditDialogCloseCancelled(
-        id: tabController.state.value.tabs[0].key,
-        tabController: tabController,
-      )) {
-        return false;
-      }
     }
     if (connLength <= 1) {
       tabController.clear();
@@ -455,12 +436,6 @@ class _ConnectionTabPageState extends State<ConnectionTabPage> {
         selectedIcon: selectedIcon,
         unselectedIcon: unselectedIcon,
         onTabCloseButton: () async {
-          if (await desktopTryShowTabAuditDialogCloseCancelled(
-            id: id,
-            tabController: tabController,
-          )) {
-            return;
-          }
           tabController.closeBy(id);
         },
         page: RemotePage(
@@ -476,7 +451,6 @@ class _ConnectionTabPageState extends State<ConnectionTabPage> {
           tabController: tabController,
           switchUuid: switchUuid,
           forceRelay: args['forceRelay'],
-          isSharedPassword: args['isSharedPassword'],
         ),
       ));
     } else if (call.method == kWindowDisableGrabKeyboard) {

@@ -304,16 +304,8 @@ impl UI {
         hbb_common::config::is_disable_settings()
     }
 
-    pub fn is_disable_account(&self) -> bool {
-        hbb_common::config::is_disable_account()
-    }
-
     pub fn is_disable_installation(&self) -> bool {
         hbb_common::config::is_disable_installation()
-    }
-
-    pub fn is_disable_ab(&self) -> bool {
-        hbb_common::config::is_disable_ab()
     }
 
     fn get_options(&self) -> Value {
@@ -663,9 +655,6 @@ impl UI {
         handle_relay_id(&id).to_owned()
     }
 
-    fn get_login_device_info(&self) -> String {
-        get_login_device_info_json()
-    }
 
     fn support_remove_wallpaper(&self) -> bool {
         support_remove_wallpaper()
@@ -683,9 +672,6 @@ impl UI {
         verify2fa(code)
     }
 
-    fn verify_login(&self, raw: String, id: String) -> bool {
-        crate::verify_login(&raw, &id)
-    }
 
     fn generate_2fa_img_src(&self, data: String) -> String {
         let v = qrcode_generator::to_png_to_vec(data, qrcode_generator::QrCodeEcc::Low, 128)
@@ -729,9 +715,7 @@ impl sciter::EventHandler for UI {
         fn is_outgoing_only();
         fn is_incoming_only();
         fn is_disable_settings();
-        fn is_disable_account();
         fn is_disable_installation();
-        fn is_disable_ab();
         fn get_id();
         fn temporary_password();
         fn update_temporary_password();
@@ -811,14 +795,12 @@ impl sciter::EventHandler for UI {
         fn get_langs();
         fn video_save_directory(bool);
         fn handle_relay_id(String);
-        fn get_login_device_info();
         fn support_remove_wallpaper();
         fn has_valid_2fa();
         fn generate2fa();
         fn generate_2fa_img_src(String);
         fn verify2fa(String);
         fn check_hwcodec();
-        fn verify_login(String, String);
         fn is_option_fixed(String);
         fn get_builtin_option(String);
         fn is_remote_modify_enabled_by_control_permissions();

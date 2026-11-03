@@ -15,7 +15,6 @@ class TerminalConnectionManager {
     required String peerId,
     required String? password,
     String loginMethod = '',
-    required bool? isSharedPassword,
     required bool? forceRelay,
     required String? connToken,
   }) {
@@ -34,7 +33,6 @@ class TerminalConnectionManager {
       peerId,
       password: password,
       loginMethod: loginMethod,
-      isSharedPassword: isSharedPassword,
       forceRelay: forceRelay,
       connToken: connToken,
       isTerminal: true,

@@ -95,7 +95,6 @@ function editOSPassword(login=false) {
 var recording = false;
 
 class Header: Reactor.Component {
-    this var conn_note = "";
     
     function this() {
         header = this;
@@ -231,7 +230,6 @@ class Header: Reactor.Component {
                 {keyboard_enabled ? <li #os-password>{translate('OS Password')}<EditOsPassword /></li> : ""}
                 <li #transfer-file>{translate('Transfer file')}</li> 
                 <li #tunnel>{translate('TCP tunneling')}</li> 
-                {handler.get_audit_server("conn") && <li #note>{translate('Note')}</li>}
                 <div .separator />
                 {keyboard_enabled && (pi.platform == "Linux" || pi.sas_enabled) ? <li #ctrl-alt-del>{translate('Insert')} Ctrl + Alt + Del</li> : ""}
                 {restart_enabled && (pi.platform == "Linux" || pi.platform == "Windows" || pi.platform == "Mac OS") ? <li #restart_remote_device>{translate('Restart remote device')}</li> : ""}
@@ -351,18 +349,6 @@ class Header: Reactor.Component {
 
     event click $(#tunnel) {
         handler.tunnel();
-    }
-
-    event click $(#note) {
-        var self = this;
-        msgbox("custom", "Note", <div .form>
-         <textarea .outline-focus spellcheck="false" name="text" novalue="input note here" style="overflow: scroll-indicator; width:*; height: 140px; font-size: 1.2em; padding: 0.5em;">{self.conn_note}</textarea>
-          </div>, "", function(res=null) {
-            if (!res) return;
-            if (res.text == null || res.text == undefined) return;
-            self.conn_note = res.text ?? "";
-            handler.send_note(res.text);
-          }, 280);
     }
 
     event click $(#ctrl-alt-del) {

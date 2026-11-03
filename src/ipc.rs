@@ -391,7 +391,6 @@ pub enum Data {
     ClipboardNonFile(Option<(String, Vec<ClipboardNonFile>)>),
     PrivacyModeState((i32, PrivacyModeState, String)),
     TestRendezvousServer,
-    Deployed,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     Keyboard(DataKeyboard),
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -991,7 +990,7 @@ async fn handle(data: Data, stream: &mut Connection) {
                         None
                     };
                 } else if name == "hide_cm" {
-                    value = if crate::hbbs_http::sync::is_pro() || crate::common::is_custom_client()
+                    value = if crate::common::is_custom_client()
                     {
                         Some(hbb_common::password_security::hide_cm().to_string())
                     } else {
@@ -1157,16 +1156,11 @@ async fn handle(data: Data, stream: &mut Connection) {
         Data::TestRendezvousServer => {
             crate::test_rendezvous_server();
         }
-        Data::Deployed => {
-            crate::rendezvous_mediator::NEEDS_DEPLOY.store(false, Ordering::SeqCst);
-            crate::rendezvous_mediator::RendezvousMediator::restart();
-        }
         #[cfg(feature = "flutter")]
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Data::SwitchSidesRequest(id) => {
             let uuid = uuid::Uuid::new_v4();
             crate::server::insert_switch_sides_uuid(id, uuid.clone());
-            crate::hbbs_http::sync::register_switch_grant(uuid.to_string());
             allow_err!(
                 stream
                     .send(&Data::SwitchSidesRequest(uuid.to_string()))
@@ -2145,13 +2139,6 @@ pub fn get_proxy_status() -> bool {
 pub async fn test_rendezvous_server() -> ResultType<()> {
     let mut c = connect(1000, "").await?;
     c.send(&Data::TestRendezvousServer).await?;
-    Ok(())
-}
-
-#[tokio::main(flavor = "current_thread")]
-pub async fn notify_deployed() -> ResultType<()> {
-    let mut c = connect(1000, "").await?;
-    c.send(&Data::Deployed).await?;
     Ok(())
 }
 

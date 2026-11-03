@@ -501,8 +501,6 @@ impl sciter::EventHandler for SciterSession {
     }
 
     sciter::dispatch_script_call! {
-        fn get_audit_server(String);
-        fn send_note(String);
         fn is_xfce();
         fn get_id();
         fn get_default_pi();
@@ -621,7 +619,7 @@ impl SciterSession {
             .lc
             .write()
             .unwrap()
-            .initialize(id, conn_type, None, force_relay, None, None, None, "");
+            .initialize(id, conn_type, None, force_relay, None, None, "");
 
         Self(session)
     }

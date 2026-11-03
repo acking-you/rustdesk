@@ -229,7 +229,6 @@ class RustDeskMultiWindowManager {
     bool? forceRelay,
     String? switchUuid,
     bool? isRDP,
-    bool? isSharedPassword,
     String? connToken,
   }) async {
     var params = {
@@ -243,9 +242,6 @@ class RustDeskMultiWindowManager {
     }
     if (isRDP != null) {
       params['isRDP'] = isRDP;
-    }
-    if (isSharedPassword != null) {
-      params['isSharedPassword'] = isSharedPassword;
     }
     if (connToken != null) {
       params['connToken'] = connToken;
@@ -275,7 +271,6 @@ class RustDeskMultiWindowManager {
     String remoteId, {
     String? password,
     String loginMethod = '',
-    bool? isSharedPassword,
     String? switchUuid,
     bool? forceRelay,
   }) async {
@@ -288,7 +283,6 @@ class RustDeskMultiWindowManager {
       loginMethod: loginMethod,
       forceRelay: forceRelay,
       switchUuid: switchUuid,
-      isSharedPassword: isSharedPassword,
     );
   }
 
@@ -296,7 +290,6 @@ class RustDeskMultiWindowManager {
     String remoteId, {
     String? password,
     String loginMethod = '',
-    bool? isSharedPassword,
     bool? forceRelay,
     String? connToken,
   }) async {
@@ -308,7 +301,6 @@ class RustDeskMultiWindowManager {
       password: password,
       loginMethod: loginMethod,
       forceRelay: forceRelay,
-      isSharedPassword: isSharedPassword,
       connToken: connToken,
     );
   }
@@ -317,7 +309,6 @@ class RustDeskMultiWindowManager {
     String remoteId, {
     String? password,
     String loginMethod = '',
-    bool? isSharedPassword,
     String? switchUuid,
     bool? forceRelay,
     String? connToken,
@@ -331,7 +322,6 @@ class RustDeskMultiWindowManager {
       loginMethod: loginMethod,
       forceRelay: forceRelay,
       switchUuid: switchUuid,
-      isSharedPassword: isSharedPassword,
       connToken: connToken,
     );
   }
@@ -341,7 +331,6 @@ class RustDeskMultiWindowManager {
     bool isRDP, {
     String? password,
     String loginMethod = '',
-    bool? isSharedPassword,
     bool? forceRelay,
     String? connToken,
   }) async {
@@ -354,7 +343,6 @@ class RustDeskMultiWindowManager {
       loginMethod: loginMethod,
       forceRelay: forceRelay,
       isRDP: isRDP,
-      isSharedPassword: isSharedPassword,
       connToken: connToken,
     );
   }
@@ -363,7 +351,6 @@ class RustDeskMultiWindowManager {
     String remoteId, {
     String? password,
     String loginMethod = '',
-    bool? isSharedPassword,
     bool? forceRelay,
     String? connToken,
   }) async {
@@ -385,7 +372,6 @@ class RustDeskMultiWindowManager {
       "id": remoteId,
       "password": password,
       "forceRelay": forceRelay,
-      "isSharedPassword": isSharedPassword,
       "connToken": connToken,
     };
     if (loginMethod.isNotEmpty) {

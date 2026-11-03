@@ -5,7 +5,6 @@ import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hbb/common.dart';
-import 'package:flutter_hbb/common/widgets/dialog.dart';
 import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_hbb/models/state_model.dart';
 import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
@@ -80,7 +79,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
       terminalId: terminalId,
       password: params['password'],
       loginMethod: params['loginMethod'] ?? '',
-      isSharedPassword: params['isSharedPassword'],
       forceRelay: params['forceRelay'],
       connToken: params['connToken'],
     ));
@@ -91,7 +89,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
     required int terminalId,
     String? password,
     String loginMethod = '',
-    bool? isSharedPassword,
     bool? forceRelay,
     String? connToken,
   }) {
@@ -117,7 +114,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
         tabKey: tabKey,
         password: password,
         loginMethod: loginMethod,
-        isSharedPassword: isSharedPassword,
         tabController: tabController,
         forceRelay: forceRelay,
         connToken: connToken,
@@ -285,7 +281,7 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
   }
 
   /// Unified tab close handler for all close paths (button, shortcut, programmatic).
-  /// Shows audit dialog, cleans up session if not persistent, then removes the UI tab.
+  /// Cleans up the session if not persistent, then removes the UI tab.
   Future<void> _closeTab(String tabKey) async {
     // Idempotency guard: skip if already closing this tab
     if (_closingTabs.contains(tabKey)) return;
@@ -295,8 +291,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
       // Snapshot peerTabCount BEFORE any await to avoid race with concurrent
       // _closeAllTabs clearing tabController (which would make the live count
       // drop to 0 and incorrectly trigger session persistence).
-      // Note: the snapshot may become stale if other individual tabs are closed
-      // during the audit dialog, but this is an acceptable trade-off.
       int? snapshotPeerTabCount;
       final parsed = _parseTabKey(tabKey);
       if (parsed != null) {
@@ -307,12 +301,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
         }).length;
       }
 
-      if (await desktopTryShowTabAuditDialogCloseCancelled(
-        id: tabKey,
-        tabController: tabController,
-      )) {
-        return;
-      }
 
       // Close terminal session if not in persistent mode.
       // Wrapped separately so session cleanup failure never blocks UI tab removal.
@@ -518,7 +506,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
           terminalId: terminalId,
           password: args['password'],
           loginMethod: args['loginMethod'] ?? '',
-          isSharedPassword: args['isSharedPassword'],
           forceRelay: args['forceRelay'],
           connToken: args['connToken'],
         ));
@@ -718,7 +705,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
         terminalId: newTerminalId,
         password: page.password,
         loginMethod: page.loginMethod,
-        isSharedPassword: page.isSharedPassword,
         forceRelay: page.forceRelay,
         connToken: page.connToken,
       ));
@@ -798,12 +784,6 @@ class _TerminalTabPageState extends State<TerminalTabPage> {
   Future<bool> handleWindowCloseButton() async {
     final connLength = tabController.state.value.tabs.length;
     if (connLength == 1) {
-      if (await desktopTryShowTabAuditDialogCloseCancelled(
-        id: tabController.state.value.tabs[0].key,
-        tabController: tabController,
-      )) {
-        return false;
-      }
     }
     if (connLength <= 1) {
       await _closeAllTabs();
