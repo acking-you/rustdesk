@@ -304,16 +304,8 @@ impl UI {
         hbb_common::config::is_disable_settings()
     }
 
-    pub fn is_disable_account(&self) -> bool {
-        hbb_common::config::is_disable_account()
-    }
-
     pub fn is_disable_installation(&self) -> bool {
         hbb_common::config::is_disable_installation()
-    }
-
-    pub fn is_disable_ab(&self) -> bool {
-        hbb_common::config::is_disable_ab()
     }
 
     fn get_options(&self) -> Value {
@@ -723,9 +715,7 @@ impl sciter::EventHandler for UI {
         fn is_outgoing_only();
         fn is_incoming_only();
         fn is_disable_settings();
-        fn is_disable_account();
         fn is_disable_installation();
-        fn is_disable_ab();
         fn get_id();
         fn temporary_password();
         fn update_temporary_password();

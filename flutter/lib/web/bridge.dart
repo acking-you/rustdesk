@@ -1673,21 +1673,6 @@ class RustdeskImpl {
     return mainGetHardOption(key: "disable-settings", hint: hint) == "Y";
   }
 
-  bool isDisableAb({dynamic hint}) {
-    // Checks HARD_SETTINGS["disable-ab"] == "Y"
-    return mainGetHardOption(key: "disable-ab", hint: hint) == "Y";
-  }
-
-  bool isDisableGroupPanel({dynamic hint}) {
-    // Checks LocalConfig::get_option("disable-group-panel") == "Y"
-    return mainGetLocalOption(key: "disable-group-panel", hint: hint) == "Y";
-  }
-
-  bool isDisableAccount({dynamic hint}) {
-    // Checks HARD_SETTINGS["disable-account"] == "Y"
-    return mainGetHardOption(key: "disable-account", hint: hint) == "Y";
-  }
-
   bool isDisableInstallation({dynamic hint}) {
     return false;
   }
@@ -2024,11 +2009,6 @@ class RustdeskImpl {
     return js.context.callMethod(
             'getByName', ['resolve_avatar_url', avatar])?.toString() ??
         avatar;
-  }
-
-  Future<String> mainDeployDevice(
-      {required String token, required String id, dynamic hint}) {
-    throw UnimplementedError("mainDeployDevice");
   }
 
   void dispose() {}

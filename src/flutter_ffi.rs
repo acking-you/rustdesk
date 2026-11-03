@@ -1207,22 +1207,6 @@ pub fn main_get_api_server() -> String {
     get_api_server()
 }
 
-pub fn main_deploy_device(token: String, id: String) -> String {
-    #[cfg(target_os = "android")]
-    {
-        let new_id = match id.trim() {
-            "" => None,
-            id => Some(id.to_owned()),
-        };
-        ui_interface::deploy_device(token, new_id).message()
-    }
-    #[cfg(not(target_os = "android"))]
-    {
-        let _ = (token, id);
-        "Deployment is not supported on this platform.".to_owned()
-    }
-}
-
 pub fn main_resolve_avatar_url(avatar: String) -> SyncReturn<String> {
     SyncReturn(resolve_avatar_url(avatar))
 }
@@ -2503,18 +2487,6 @@ pub fn is_custom_client() -> SyncReturn<bool> {
 
 pub fn is_disable_settings() -> SyncReturn<bool> {
     SyncReturn(config::is_disable_settings())
-}
-
-pub fn is_disable_ab() -> SyncReturn<bool> {
-    SyncReturn(config::is_disable_ab())
-}
-
-pub fn is_disable_account() -> SyncReturn<bool> {
-    SyncReturn(config::is_disable_account())
-}
-
-pub fn is_disable_group_panel() -> SyncReturn<bool> {
-    SyncReturn(LocalConfig::get_option("disable-group-panel") == "Y")
 }
 
 // windows only

@@ -211,8 +211,6 @@ static MANUAL_RESTARTED: AtomicBool = AtomicBool::new(false);
 static MANUAL_RESTART_NOTIFY: Notify = Notify::const_new();
 static SENT_REGISTER_PK: AtomicBool = AtomicBool::new(false);
 pub(crate) static NEEDS_DEPLOY: AtomicBool = AtomicBool::new(false);
-#[cfg(target_os = "android")]
-static NOTIFIED_NEEDS_DEPLOY: AtomicBool = AtomicBool::new(false);
 // register_pk retry interval (ms) when device is awaiting deployment
 const DEPLOY_RETRY_INTERVAL: i64 = 30_000;
 lazy_static::lazy_static! {
@@ -220,8 +218,7 @@ lazy_static::lazy_static! {
 }
 
 // Single source of truth for the "awaiting deployment" backoff. The server has
-// already told us this device is not in its db; until the operator runs
-// `rustdesk --deploy --token <api_token>` there is no point re-running the
+// already told us this device is not in its db; there is no point re-running the
 // register path more often than DEPLOY_RETRY_INTERVAL. Gating in the timer
 // loops (rather than only inside register_pk) also avoids the
 // last_register_sent / fails / latency / UDP-rebind churn the loop would
@@ -238,23 +235,8 @@ async fn deploy_register_throttled() -> bool {
 }
 
 #[cfg(target_os = "android")]
-fn notify_android_needs_deploy() {
-    if NOTIFIED_NEEDS_DEPLOY.load(Ordering::SeqCst) {
-        return;
-    }
-    let event = serde_json::json!({ "name": "android_needs_deploy" }).to_string();
-    if matches!(
-        crate::flutter::push_global_event(crate::flutter::APP_TYPE_MAIN, event),
-        Some(true)
-    ) {
-        NOTIFIED_NEEDS_DEPLOY.store(true, Ordering::SeqCst);
-    }
-}
-
-#[cfg(target_os = "android")]
 pub(crate) fn reset_needs_deploy_notification() {
     NEEDS_DEPLOY.store(false, Ordering::SeqCst);
-    NOTIFIED_NEEDS_DEPLOY.store(false, Ordering::SeqCst);
 }
 
 async fn wait_for_retry(delay: f32, restarted: tokio::sync::futures::Notified<'_>) {
@@ -287,7 +269,6 @@ impl RendezvousMediator {
                 sleep(1.).await;
             }
         }
-        crate::hbbs_http::sync::start();
         #[cfg(target_os = "windows")]
         if crate::platform::is_installed() && crate::is_server() {
             crate::updater::start_auto_update();
@@ -450,8 +431,7 @@ impl RendezvousMediator {
                     // The server already told us this device is not deployed. Skip
                     // the whole register / fails / latency / UDP-rebind path until
                     // DEPLOY_RETRY_INTERVAL elapses, otherwise the loop spins every
-                    // few seconds (log spam + misapplied network-recovery rebind)
-                    // until the operator runs `rustdesk --deploy`.
+                    // few seconds (log spam + misapplied network-recovery rebind).
                     if deploy_register_throttled().await {
                         continue;
                     }
@@ -527,7 +507,7 @@ impl RendezvousMediator {
                     }
                     Ok(register_pk_response::Result::NOT_DEPLOYED) => {
                         if !NEEDS_DEPLOY.load(Ordering::SeqCst) {
-                            log::warn!("Server requires deployment. Run `rustdesk --deploy --token <api_token>` on this device.");
+                            log::warn!("Server requires device deployment, which is unavailable in this build.");
                         }
                         NEEDS_DEPLOY.store(true, Ordering::SeqCst);
                         // Clear key_confirmed so the UI reflects the truth: this device is
@@ -535,8 +515,6 @@ impl RendezvousMediator {
                         // was deleted by an admin while running.
                         Config::set_key_confirmed(false);
                         Config::set_host_key_confirmed(&self.host_prefix, false);
-                        #[cfg(target_os = "android")]
-                        notify_android_needs_deploy();
                     }
                     _ => {
                         log::error!("unknown RegisterPkResponse");
@@ -1254,9 +1232,7 @@ impl RendezvousMediator {
 
     async fn register_pk(&mut self, socket: Sink<'_>) -> ResultType<()> {
         // Throttle register_pk when the device is awaiting deployment: server
-        // already told us we're not in its db; sending more often than every
-        // DEPLOY_RETRY_INTERVAL ms is wasted traffic until the operator runs
-        // `rustdesk --deploy --token <api_token>`.
+        // already told us we're not in its db, so repeated registration is throttled.
         if NEEDS_DEPLOY.load(Ordering::SeqCst) {
             let mut last = LAST_NOT_DEPLOYED_REGISTER.lock().await;
             if let Some(t) = *last {
